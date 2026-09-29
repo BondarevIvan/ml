@@ -9,8 +9,11 @@ class Dropout:
         self._probability = probability
 
     def forward(self, x: TT) -> TT:
-        capacity = x.view(-1).shape[0]
-        return (x.view(-1) * (torch.rand(capacity) > self._probability)).view(x.shape) / (1 - self._probability)
+        if self._probability == 0.0:
+            return x
+        # маска создаётся на том же устройстве, что и x (cpu / cuda / mps)
+        mask = torch.rand(x.shape, device=x.device) > self._probability
+        return x * mask / (1 - self._probability)
 
     def parameters(self) -> list:
         return []
